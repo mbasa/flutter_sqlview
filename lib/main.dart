@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_sqlview/utils/dialog_utils.dart';
+import 'package:flutter_sqlview/utils/geofuse_utils.dart';
 import 'package:flutter_sqlview/utils/net_utils.dart';
 import 'package:highlight/languages/sql.dart';
 import 'package:path/path.dart' as p;
@@ -16,9 +17,7 @@ import 'package:postgresql2/postgresql.dart' as psql;
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (runWebViewTitleBarWidget(args, onError: (_, s) {
-    debugPrint("WebView Error ${s.toString()}");
-  }, backgroundColor: Colors.lightGreen)) {
+  if (runWebViewTitleBarWidget(args, backgroundColor: Colors.lightGreen)) {
     return;
   }
 
@@ -32,7 +31,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter Application',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -172,6 +171,36 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  bool _isMappable() {
+    try {
+      if (_dataRows.isEmpty || _dataCols.isEmpty) {
+        return false;
+      }
+
+      if (_dataCols.length < 2) {
+        return false;
+      }
+
+      var u = _dataCols[0].label as Text;
+      debugPrint("Col[0]: ${u.data} ${geoFuseLinkCol.contains(u.data)}");
+      if (geoFuseLinkCol.contains(u.data)) {
+        return true;
+      }
+
+      var s = _dataCols[_dataCols.length - 2].label as Text;
+      var t = _dataCols[_dataCols.length - 1].label as Text;
+
+      if (s.data?.compareTo("lon") == 0 &&
+          t.data?.compareTo("lat") == 0 &&
+          _dataCols.length > 3) {
+        return true;
+      }
+    } catch (e) {
+      debugPrint("Mappable Check Error: ${e.toString()}");
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -290,18 +319,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _dataRows.isEmpty
-            ? null
-            : () async {
+      floatingActionButton: !_isMappable()
+          ? null
+          : FloatingActionButton(
+              onPressed: () async {
                 DialogUtil.showOnSendDialog(context, "Sending Data to GeoFuse");
                 String csv = _resultToCSV();
                 //debugPrint(csv);
                 String result = await NetworkHelper.postCsvData(
-                    //"http://cld06.georepublic.net/geofuseV2/indata",
-                    _geofuseUrl,
-                    csv,
-                    "flutter_mb");
+                    _geofuseUrl, csv, "flutter_mb");
                 Navigator.pop(context);
 
                 if (result.isEmpty || result.startsWith("Error")) {
@@ -319,8 +345,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
 
                   webView
-                    //..setBrightness(Brightness.dark)
-                    //..setApplicationNameForUserAgent(" WebviewExample/1.0.0")
+                    ..setBrightness(Brightness.dark)
+                    ..setApplicationNameForUserAgent(" WebviewExample/1.0.0")
                     //..openDevToolsWindow()
                     ..onClose.whenComplete(() {
                       debugPrint("on close");
@@ -328,11 +354,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     ..launch(result);
                 }
               },
-        tooltip: 'Upload to GeoFuse',
-        backgroundColor:
-            _dataRows.isEmpty ? Colors.grey : Colors.deepOrangeAccent,
-        child: const Icon(Icons.send_outlined),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+              tooltip: 'Upload to GeoFuse',
+              backgroundColor:
+                  _dataRows.isEmpty ? Colors.grey : Colors.deepOrangeAccent,
+              child: const Icon(Icons.send_outlined),
+            ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
