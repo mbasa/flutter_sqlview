@@ -315,7 +315,19 @@ class _MyHomePageState extends State<MyHomePage> {
                                     color: Colors.grey, width: 1)),
                             dividerThickness: 1,
                           ),
-                  )
+                  ),
+                  Container(
+                      color: Colors.indigo,
+                      height: 25,
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: _dataRows.isEmpty
+                            ? Text("")
+                            : Text("Number of Records: ${_dataRows.length}",
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12)),
+                      )),
                 ],
               ),
       ),
