@@ -57,12 +57,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String _pgUrl = "postgres://postgres:postgres@localhost:5432/addresses2020";
   String _geofuseUrl = "http://localhost:8080/geofuse/indata";
+  String _layerName = "flutter_mb";
 
   final List<DataColumn2> _dataCols = [];
   final List<DataRow2> _dataRows = [];
 
   final String _initialSql =
-      "select code,todofuken,lon,lat from pggeocoder.address_t";
+      "select todofuken,(random()*10000)::int,lon,lat from pggeocoder.address_t";
 
   final _codeController = CodeController(language: sql, text: "");
 
@@ -237,6 +238,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     await DialogUtil.showConfigDialog(context, {
                   "pgUrl": _pgUrl,
                   "geofuseUrl": _geofuseUrl,
+                  "layerName": _layerName,
                 });
 
                 debugPrint("GeoFuse URL: ${retData["geofuseUrl"]}");
@@ -246,6 +248,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
                 if (retData["geofuseUrl"]!.isNotEmpty) {
                   _geofuseUrl = retData["geofuseUrl"]!;
+                }
+                if (retData["layerName"]!.isNotEmpty) {
+                  _layerName = retData["layerName"]!;
                 }
               },
               icon: const Icon(Icons.settings)),
@@ -339,7 +344,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 String csv = _resultToCSV();
                 //debugPrint(csv);
                 String result = await NetworkHelper.postCsvData(
-                    _geofuseUrl, csv, "flutter_mb");
+                    _geofuseUrl, csv, _layerName);
                 Navigator.pop(context);
 
                 if (result.isEmpty || result.startsWith("Error")) {

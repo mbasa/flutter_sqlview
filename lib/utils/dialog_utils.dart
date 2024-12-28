@@ -109,6 +109,9 @@ class DialogUtil {
     TextEditingController geofuseUrl =
         TextEditingController(text: inData["geofuseUrl"]);
 
+    TextEditingController layerName =
+        TextEditingController(text: inData["layerName"]);
+
     return await showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -117,6 +120,15 @@ class DialogUtil {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                TextField(
+                  controller: layerName,
+                  decoration: const InputDecoration(
+                    labelText: 'Layer Name',
+                    labelStyle: TextStyle(
+                      color: Colors.deepOrange,
+                    ),
+                  ),
+                ),
                 TextField(
                   controller: pgUrl,
                   decoration: const InputDecoration(
@@ -141,6 +153,7 @@ class DialogUtil {
                   Navigator.of(context).pop({
                     "pgUrl": pgUrl.text,
                     "geofuseUrl": geofuseUrl.text,
+                    "layerName": layerName.text,
                   });
                 },
                 child: const Text('Save'),
