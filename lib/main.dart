@@ -327,10 +327,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Align(
                         alignment: Alignment.center,
                         child: _dataRows.isEmpty
-                            ? Text("")
+                            ? const Text("")
                             : Text("Number of Records: ${_dataRows.length}",
                                 textAlign: TextAlign.left,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     color: Colors.white, fontSize: 12)),
                       )),
                 ],
